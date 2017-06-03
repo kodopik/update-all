@@ -13,7 +13,7 @@
 #     && apt autoremove [-y] \
 #     && apt autoclean
 
-set -euo pipefail
+set -eo pipefail
 
 PARAMS='-y'
 declare -r APP_NAME=`basename $0`
