@@ -87,12 +87,12 @@ function upgrade {
 }
 
 function remove {
-    print_message 'REMOVING OBSOLETE SOFTWARE:'
+    print_message 'REMOVING OBSOLETE SOFTWARE'
     $apt_command autoremove $params
 }
 
 function clean {
-    print_message 'CLEANING SYSTEM:'
+    print_message 'CLEANING SYSTEM'
     $apt_command autoclean
 }
 
