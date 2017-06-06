@@ -31,7 +31,7 @@ if [[ $UBUNTU_RELEASE -lt 16 ]]; then
     apt_command='apt-get'
 fi
 
-PARAMS='-y'
+params='-y'
 declare -r APP_NAME=`basename $0`
 declare -r USAGE_MESS="Usage: $APP_NAME [OPTIONS]"
 declare -r ERR_MESS=`cat << EOF
@@ -53,7 +53,7 @@ EOF
 
 if [[ -n "$1" ]]; then
     case "$1" in
-        -i) PARAMS='';;
+        -i) params='';;
         -h|--help) print_help
             exit 0;;
         *) echo "$ERR_MESS" >&2
@@ -83,12 +83,12 @@ function list {
 
 function upgrade {
     print_message 'UPGRADING'
-    $apt_command dist-upgrade $PARAMS
+    $apt_command dist-upgrade $params
 }
 
 function remove {
     print_message 'REMOVING OBSOLETE SOFTWARE:'
-    $apt_command autoremove $PARAMS
+    $apt_command autoremove $params
 }
 
 function clean {
