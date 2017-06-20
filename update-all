@@ -9,7 +9,7 @@
 #
 # apt update \
 #     && apt list --upgradable \
-#     && apt dist-upgrade [-y] \
+#     && apt full-upgrade [-y] \
 #     && apt autoremove [-y] \
 #     && apt autoclean
 
@@ -27,8 +27,11 @@ fi
 
 declare -ri UBUNTU_RELEASE=${DISTRIB_RELEASE%%.*}
 apt_command='apt'
+upgrade_param='full'
+# Use `apt-get dist-upgrade' instead of `apt full-upgrade' on older releases:
 if [[ $UBUNTU_RELEASE -lt 16 ]]; then
     apt_command='apt-get'
+    upgrade_param='dist'
 fi
 
 params='-y'
@@ -83,7 +86,7 @@ function list {
 
 function upgrade {
     print_message 'UPGRADING'
-    $apt_command dist-upgrade $params
+    $apt_command ${upgrade_param}-upgrade $params
 }
 
 function remove {
