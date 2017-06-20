@@ -22,7 +22,7 @@ source /etc/lsb-release || ( \
 
 if [[ $DISTRIB_ID != 'Ubuntu' ]]; then
     echo 'Sorry, Ubuntu only' >&2
-    exit 1
+    exit 2
 fi
 
 declare -ri UBUNTU_RELEASE=${DISTRIB_RELEASE%%.*}
@@ -57,13 +57,13 @@ if [[ -n "$1" ]]; then
         -h|--help) print_help
             exit 0;;
         *) echo "$ERR_MESS" >&2
-            exit 1;;
+            exit 3;;
     esac
 fi
 
 if [[ $UID != 0 ]]; then
     printf "Please run this script with sudo:\nsudo %s %s\n" "$APP_NAME" "$*" >&2
-    exit 1
+    exit 4
 fi
 
 function print_message {
