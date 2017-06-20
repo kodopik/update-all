@@ -9,3 +9,8 @@ apt update \
      && apt autoremove [-y] \
      && apt autoclean
 ```
+
+# Installation:
+```
+sudo make install
+```
