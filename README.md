@@ -5,7 +5,7 @@ What this script actually does:
 ```
 apt update \
      && apt list --upgradable \
-     && apt dist-upgrade [-y] \
+     && apt full-upgrade [-y] \
      && apt autoremove [-y] \
      && apt autoclean
 ```
