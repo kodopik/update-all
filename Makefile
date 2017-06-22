@@ -1,5 +1,5 @@
 TARGET = update-all
-PREFIX = /usr/local/bin
+PREFIX = /usr/local/sbin
 
 .PHONY: all install uninstall
 
