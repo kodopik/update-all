@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # update-all
-# v.1.4
+# v.1.5
 # (c) Anton 'KodopiK' Konoplev, 2017
 # kodopik@kodopik.ru
 #
@@ -26,15 +26,20 @@ if [[ $DISTRIB_ID != 'Ubuntu' ]]; then
 fi
 
 declare -ri UBUNTU_RELEASE=${DISTRIB_RELEASE%%.*}
+
 apt_command='apt'
+list_param=''
 upgrade_param='full'
+
 # Use `apt-get dist-upgrade' instead of `apt full-upgrade' on older releases:
 if [[ $UBUNTU_RELEASE -lt 16 ]]; then
     apt_command='apt-get'
+    list_param='-s'
     upgrade_param='dist'
 fi
 
 params='-y'
+
 declare -r APP_NAME=`basename $0`
 declare -r USAGE_MESS="Usage: $APP_NAME [OPTIONS]"
 declare -r ERR_MESS=`cat << EOF
@@ -76,12 +81,16 @@ function print_message {
 
 function update {
     print_message 'UPDATING'
-    $apt_command update
+    $apt_command ${update_param} update
 }
 
 function list {
     print_message 'UPGRADABLE SOFTWARE'
-    $apt_command list --upgradable
+    if [[ $UBUNTU_RELEASE -lt 16 ]]; then
+        $apt_command ${list_param} ${upgrade_param}-upgrade
+    else
+        $apt_command list --upgradable
+    fi
 }
 
 function upgrade {
