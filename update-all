@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # update-all
-# v.1.5
-# (c) Anton 'KodopiK' Konoplev, 2017
+# v.1.6
+# (c) Anton 'KodopiK' Konoplev, 2017-2023
 # kodopik@kodopik.ru
 #
 # What this script actually does:
@@ -20,8 +20,18 @@ source /etc/lsb-release || ( \
     exit 1
 )
 
-if [[ $DISTRIB_ID != 'Ubuntu' ]]; then
-    echo 'Sorry, Ubuntu only' >&2
+declare -a LSB_ARRAY=( 'Ubuntu' 'LinuxMint' )
+
+function join_by {
+    # © Nicholas Sushkin
+    local d=${1-} f=${2-}
+    if shift 2; then
+        printf %s "$f" "${@/#/$d}"
+    fi
+}
+
+if [[ ! "${LSB_ARRAY[*]}" =~ "$DISTRIB_ID" ]]; then
+    echo "Sorry, \""`join_by ", " ${LSB_ARRAY[*]}`"\" only" >&2
     exit 2
 fi
 
