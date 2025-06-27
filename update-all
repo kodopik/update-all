@@ -1,66 +1,56 @@
 #!/usr/bin/env bash
 #
 # update-all
-# v.1.6
-# (c) Anton 'KodopiK' Konoplev, 2017-2023
+# v.1.8
+# (c) Anton 'KodopiK' Konoplev, 2017-2025
 # kodopik@kodopik.ru
 #
-# What this script actually does:
-#
-# apt update \
-#     && apt list --upgradable \
-#     && apt full-upgrade [-y] \
-#     && apt autoremove [-y] \
-#     && apt autoclean
+# Что делает скрипт:
+#   apt update \
+#       && apt list --upgradable \
+#       && apt full-upgrade [-y] \
+#       && apt autoremove [-y] \
+#       && apt autoclean
 
 set -eo pipefail
 
-source /etc/lsb-release || ( \
-    echo 'Cannot import LSB variables' >&2
+# --- Определяем ОС и версию только через /etc/os-release ---
+if [[ -r /etc/os-release && -s /etc/os-release ]]; then
+    source /etc/os-release
+    OS_ID="$ID"
+    OS_RELEASE="$VERSION_ID"
+else
+    echo 'Cannot detect OS: /etc/os-release not found or empty' >&2
     exit 1
-)
+fi
 
-declare -a LSB_ARRAY=( 'Ubuntu' 'LinuxMint' )
+# Поддерживаемые дистрибутивы
+declare -a SUPPORTED=( 'ubuntu' 'linuxmint' 'debian' )
 
-function join_by {
-    # © Nicholas Sushkin
-    local d=${1-} f=${2-}
-    if shift 2; then
-        printf %s "$f" "${@/#/$d}"
-    fi
-}
-
-if [[ ! "${LSB_ARRAY[*]}" =~ "$DISTRIB_ID" ]]; then
-    echo "Sorry, \""`join_by ", " ${LSB_ARRAY[*]}`"\" only" >&2
+# Проверяем, что OS_ID в списке
+if ! [[ " ${SUPPORTED[*]} " =~ " ${OS_ID,,} " ]]; then
+    echo "Sorry, supported only: ${SUPPORTED[*]^}" >&2
     exit 2
 fi
 
-declare -ri UBUNTU_RELEASE=${DISTRIB_RELEASE%%.*}
+MAJOR_RELEASE=${OS_RELEASE%%.*}
 
+# Для старых Ubuntu (<16) используем apt-get dist-upgrade
 apt_command='apt'
 list_param=''
 upgrade_param='full'
-
-# Use `apt-get dist-upgrade' instead of `apt full-upgrade' on older releases:
-if [[ $UBUNTU_RELEASE -lt 16 ]]; then
+if [[ "${OS_ID,,}" == "ubuntu" && "$MAJOR_RELEASE" -lt 16 ]]; then
     apt_command='apt-get'
     list_param='-s'
     upgrade_param='dist'
 fi
 
 params='-y'
-
-declare -r APP_NAME=`basename $0`
-declare -r USAGE_MESS="Usage: $APP_NAME [OPTIONS]"
-declare -r ERR_MESS=`cat << EOF
-${USAGE_MESS}
-
-${APP_NAME}: error: no such option: ${1}
-EOF
-`
+APP_NAME="$(basename "$0")"
+USAGE="Usage: $APP_NAME [OPTIONS]"
 
 function print_help {
-    echo $USAGE_MESS
+    echo "$USAGE"
     cat << EOF
 
 Options:
@@ -69,35 +59,34 @@ Options:
 EOF
 }
 
+# Обработка аргументов
 if [[ -n "$1" ]]; then
     case "$1" in
         -i) params='';;
-        -h|--help) print_help
-            exit 0;;
-        *) echo "$ERR_MESS" >&2
-            exit 3;;
+        -h|--help) print_help; exit 0;;
+        *) echo "$APP_NAME: error: no such option: $1" >&2; exit 3;;
     esac
 fi
 
-if [[ $UID != 0 ]]; then
-    printf "Please run this script with sudo:\nsudo %s %s\n" "$APP_NAME" "$*" >&2
+# Проверяем привилегии
+if [[ $UID -ne 0 ]]; then
+    echo "Please run as root: sudo $APP_NAME $*" >&2
     exit 4
 fi
 
 function print_message {
-    MESSAGE="$1"
-    printf '\n**** %s: ****\n\n' "${MESSAGE}"
+    printf '\n**** %s ****\n\n' "$1"
 }
 
 function update {
     print_message 'UPDATING'
-    $apt_command ${update_param} update
+    $apt_command update
 }
 
-function list {
+function list_upgradable {
     print_message 'UPGRADABLE SOFTWARE'
-    if [[ $UBUNTU_RELEASE -lt 16 ]]; then
-        $apt_command ${list_param} ${upgrade_param}-upgrade
+    if [[ "${OS_ID,,}" == "ubuntu" && "$MAJOR_RELEASE" -lt 16 ]]; then
+        $apt_command $list_param ${upgrade_param}-upgrade
     else
         $apt_command list --upgradable
     fi
@@ -119,13 +108,9 @@ function clean {
 }
 
 function main {
-    update  && \
-    list    && \
-    upgrade && \
-    remove  && \
-    clean
+    update && list_upgradable && upgrade && remove && clean
 }
 
 main
-
 exit 0
+
