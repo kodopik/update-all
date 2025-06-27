@@ -5,7 +5,7 @@
 # (c) Anton 'KodopiK' Konoplev, 2017-2025
 # kodopik@kodopik.ru
 #
-# Что делает скрипт:
+# What the script does:
 #   apt update \
 #       && apt list --upgradable \
 #       && apt full-upgrade [-y] \
@@ -14,7 +14,7 @@
 
 set -eo pipefail
 
-# --- Определяем ОС и версию только через /etc/os-release ---
+# --- Determine OS and version using /etc/os-release only ---
 if [[ -r /etc/os-release && -s /etc/os-release ]]; then
     source /etc/os-release
     OS_ID="$ID"
@@ -24,10 +24,10 @@ else
     exit 1
 fi
 
-# Поддерживаемые дистрибутивы
+# Supported distributions
 declare -a SUPPORTED=( 'ubuntu' 'linuxmint' 'debian' )
 
-# Проверяем, что OS_ID в списке
+# Check if OS_ID is in the supported list
 if ! [[ " ${SUPPORTED[*]} " =~ " ${OS_ID,,} " ]]; then
     echo "Sorry, supported only: ${SUPPORTED[*]^}" >&2
     exit 2
@@ -35,7 +35,7 @@ fi
 
 MAJOR_RELEASE=${OS_RELEASE%%.*}
 
-# Для старых Ubuntu (<16) используем apt-get dist-upgrade
+# For older Ubuntu (<16) use apt-get dist-upgrade
 apt_command='apt'
 list_param=''
 upgrade_param='full'
@@ -59,7 +59,7 @@ Options:
 EOF
 }
 
-# Обработка аргументов
+# Parse arguments
 if [[ -n "$1" ]]; then
     case "$1" in
         -i) params='';;
@@ -68,7 +68,7 @@ if [[ -n "$1" ]]; then
     esac
 fi
 
-# Проверяем привилегии
+# Check for privileges
 if [[ $UID -ne 0 ]]; then
     echo "Please run as root: sudo $APP_NAME $*" >&2
     exit 4
